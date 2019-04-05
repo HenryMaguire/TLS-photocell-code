@@ -207,12 +207,7 @@ def L_R_lead_dissipators(H, A, T_L=77., mu_L=1000.,
                     Zm_1 += KL*A_kl*rate_up.conjugate()
                     Zm_2 += KL*A_kl*rate_down.conjugate()
                 else:
-                    pass
-                    """rup, rdown = limit_fermi_flat(Gamma_0[j], T[j], mu[j])
-                    Zp_1 += LK*Adag_lk*rup
-                    Zp_2 += LK*Adag_lk*rdown
-                    Zm_1 += KL*A_kl*rup
-                    Zm_2 += KL*A_kl*rdown"""
+                    pass # For Ohmic spectral densities the zero frequency portion goes to zero
         Z.append([Zp_1, Zp_2, Zm_1, Zm_2])
 
     #print Z_plus_1+Z_plus_2, Z_minus_1+Z_minus_2

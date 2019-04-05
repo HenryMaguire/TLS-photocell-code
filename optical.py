@@ -52,26 +52,6 @@ def rate_up(epsilon, N, alpha):
 def rate_down(epsilon, N, alpha):
     return 0.5*np.pi*alpha*(N+1)
 
-"""
-def J_ohmic(omega, alpha, wc=10000):
-    return alpha*omega*np.exp(-omega/wc)
-
-
-def J_multipolar(omega, Gamma, omega_0):
-    if omega==omega_0:
-        print "HELLO"
-        return Gamma/(2*np.pi)
-    else:
-        return Gamma*(omega**3)/(2*np.pi*(omega_0**3))
-
-def J_minimal(omega, Gamma, omega_0):
-    if omega==omega_0:
-        return Gamma/(2*np.pi)
-    else:
-        return Gamma*omega/(2*np.pi*omega_0)
-def J_flat(omega, Gamma, omega_0):
-    return Gamma"""
-
 def coth(x):
     return float(sympy.coth(x))
 
@@ -135,7 +115,7 @@ def DecayRate(omega, beta, J, Gamma, w0, imag_part=True, tol=1e-5, alpha=0.):
         elif J == J_multipolar:
             G=0.
         else:
-            print("Assuming J_minimal")
+            #print("Assuming J_minimal")
             G = (np.pi/2)*(2*Gamma/beta)
             # G = Gamma/(2*beta*w0)
         # The limit as omega tends to zero is zero for superohmic case?

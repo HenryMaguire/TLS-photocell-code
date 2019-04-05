@@ -22,44 +22,31 @@ import copy
 
 #import pdb; pdb.set_trace()
 
-def Ham_RC(sigma, eps, Omega, kappa, N, rotating=False):
+def Ham_and_param_RC_mapping(PARAMS, silent=False):
     """
-    Input: System splitting, RC freq., system-RC coupling and Hilbert space dimension
+    Input: takes in PARAMS and mapped params, 
     Output: Hamiltonian, sigma_- and sigma_z in the vibronic Hilbert space
     """
-
+    N = PARAMS['N']
     a = destroy(N)
-    shift = 0.5*(kappa**2)/Omega
-    I_sys = Qobj(qeye(sigma.shape[0]),dims=sigma.dims)
-    sys_energy = (eps+shift)
-    if rotating:
-        sys_energy=0.
-    H_S = sys_energy*tensor(sigma.dag()*sigma, qeye(N)) + kappa*tensor(sigma.dag()*sigma, (a + a.dag())) + tensor(I_sys,Omega*a.dag()*a)
-    A_em = tensor(sigma, qeye(N))
-    A_nrwa = tensor(sigma+sigma.dag(), qeye(N))
-    A_ph = tensor(I_sys, (a + a.dag()))
-    return H_S, A_em, A_nrwa, A_ph
+    I_sys = Qobj(qeye(PARAMS['H_sub'].shape[0]), dims=PARAMS['H_sub'].dims)
+    I = qeye(N)
+    wRC, gamma, kappa, energy_shift = mapped_constants(PARAMS['Omega_ph'], PARAMS['alpha_ph'], PARAMS['Gamma_ph'])
 
-def Ham_RC_gen(H_sub, sigma, Omega, kappa, N, rotating=False, shift = 0., shift_op=None, w_laser=0.):
-    """
-    will only work for spin-boson like models
-    Input: System Hamiltonian, RC freq., system-RC coupling and Hilbert space dimension
-    Output: Hamiltonian, sigma_- and sigma_z in the vibronic Hilbert space
-    """
-    a = destroy(N)
-    I_sys = Qobj(qeye(H_sub.shape[0]),dims=sigma.dims)
-    #print(( "shift is ", shift))
-    H_sub += shift_op*shift # shift is zero if no shift is required
-    if rotating:
-        # Hopefully removes energy scale. Shift operator should be the same as
-        # the site energy-scale operator.
-        H_sub -= shift_op*H_sub*(shift_op.dag())
-    H_S = tensor(H_sub, qeye(N)) + kappa*tensor(shift_op, (a + a.dag()))
-    H_S += tensor(I_sys, Omega*a.dag()*a)
-    A_em = tensor(sigma, qeye(N))
-    A_nrwa = tensor(sigma+sigma.dag(), qeye(N))
-    A_ph = tensor(I_sys, a)
-    return H_S, A_em, A_nrwa, A_ph
+    PARAMS.update({'Omega_RC': wRC, 'gamma_RC' : gamma, 'kappa_RC': kappa, 'energy_shift': energy_shift}) # update with mapped params
+    PARAMS.update({'H_shifted': PARAMS['H_sub']+PARAMS['A_ph']*PARAMS['A_ph']*energy_shift}) # A_ph**2 is the shift operator (?)
+
+    H_S = tensor(PARAMS['H_shifted'], I) + kappa*tensor(PARAMS['A_ph'], (a + a.dag())) + tensor(I_sys, wRC*a.dag()*a)
+    #A_em = tensor(sigma_EM, qeye(N))
+    A_nrwa = tensor(PARAMS['A_EM']+PARAMS['A_EM'].dag(), I)
+    A_RC = tensor(I_sys, a)
+    A_L = tensor(PARAMS['A_L'], I)
+    A_R = tensor(PARAMS['A_R'], I)
+    if not silent:
+        print(("w_RC={} | RC-res. coupling={:0.4f} | TLS-RC coupling={:0.2f} | Gamma_ph={:0.2f} | alpha_ph={:0.2f} | N={} |".format(wRC, gamma,  kappa, 
+                                                                                                                                    PARAMS['Gamma_ph'], 
+                                                                                                                                    PARAMS['alpha_ph'], N)))
+    return PARAMS, H_S, A_nrwa, A_RC, A_L, A_R
 
 
 def RCME_operators(H_0, A, gamma, beta):
@@ -124,54 +111,10 @@ def liouvillian_build(H_0, A, gamma, wRC, T_C):
 
     return L, Chi+Xi
 
-def liouvillian_build_new(H_0, A, gamma, wRC, T_C):
-    # Now this function has to construct the liouvillian so that it can be passed to mesolve
-    H_0, A, Chi, Xi = RCME_operators(H_0, A, gamma, beta_f(T_C))
-    Z = Chi+Xi
-    Z_dag = Z.dag()
-    L=0
-    #L+=spre(A*Z_dag)
-    #L-=sprepost(A, Z)
-    #L-=sprepost(Z_dag, A)
-    #L+=spost(Z_dag*A)
-
-    L-=spre(A*Z_dag)
-    L+=sprepost(A, Z)
-    L+=sprepost(Z_dag, A)
-    L-=spost(Z*A)
-
-    print("new L built")
-    return L, Z
-
-def RC_function_UD(sigma, eps, T_ph, Gamma, wRC, alpha_ph, N, silent=False,
-                                            residual_off=False, rotating=False,
-                                            new=False):
-    # we define all of the RC parameters by the underdamped spectral density
-    gamma = Gamma / (2. * np.pi * wRC)  # coupling between RC and residual bath
-    if residual_off:
-        gamma=0
-    kappa= np.sqrt(np.pi * alpha_ph * wRC / 2.)  # coupling strength between the TLS and RC
-
-    if not silent:
-        print(("w_RC={} | TLS splitting = {} | RC-res. coupling={:0.2f} | TLS-RC coupling={:0.2f} | Gamma_RC={:0.2f} | alpha_ph={:0.2f} | N={} |".format(wRC, eps, gamma,  kappa, Gamma, alpha_ph, N)))
-    H, A_em, A_nrwa, A_ph = Ham_RC(sigma, eps, wRC, kappa, N, rotating=rotating)
-    if new:
-        L_RC, Z =  liouvillian_build_new(H, A_ph, gamma, wRC, T_ph)
-    else:
-        L_RC, Z =  liouvillian_build(H, A_ph, gamma, wRC, T_ph)
-    return L_RC, H, A_em, A_nrwa, Z, wRC, kappa, Gamma
-
-def underdamped_shift(alpha, Gamma, w0):
-    sfactor = sqrt(Gamma**2 -4*w0**2)
-    denom = sqrt(2)*(sqrt(Gamma**2 - 2*w0**2 - Gamma*sfactor)+sqrt(
-                        Gamma**2 - 2*w0**2 + Gamma*sfactor))
-    return pi*alpha*Gamma/denom
-
-
 def mapped_constants(w0, alpha_ph, Gamma):
     gamma = Gamma / (2. * np.pi * w0)  # coupling between RC and residual bath
     kappa= np.sqrt(np.pi * alpha_ph * w0 / 2.)  # coupling strength between the TLS and RC
-    shift = 0.5*pi*alpha_ph/2
+    shift = 0.5*pi*alpha_ph
     return w0, gamma, kappa, shift
 
 def mapped_operators_and_constants(H_sub, sigma, T_ph, Gamma, Omega, alpha_ph, N, 
@@ -183,30 +126,21 @@ def mapped_operators_and_constants(H_sub, sigma, T_ph, Gamma, Omega, alpha_ph, N
     return H, A_em, A_ph, wRC, gamma, kappa
 
                                     
-def RC_mapping_general(H_sub, sigma, T_ph, Gamma, Omega, alpha_ph, N, silent=False,
-                                            residual_off=False, rotating=False,
-                                            shift_op = None, shift=True, new=False, w_laser=0.):
+def RC_mapping(PARAMS):
     
     # we define all of the RC parameters by the underdamped spectral density
-    wRC, gamma, kappa, energy_shift = mapped_constants(Omega, alpha_ph, Gamma)
+    wRC, gamma, kappa, energy_shift = mapped_constants(PARAMS['Omega_ph'], PARAMS['alpha_ph'], PARAMS['Gamma_ph'])
 
-    if not silent:
-        print(("w_RC={} | RC-res. coupling={:0.4f} | TLS-RC coupling={:0.2f} | Gamma_RC={:0.2f} | alpha_ph={:0.2f} | N={} |".format(wRC, gamma,  kappa, Gamma, alpha_ph, N)))
-    if shift_op is None:
-        shift_op = sigma.dag()*sigma
-    if shift:
-        shift = energy_shift
-    else:
-        shift = 0.
-    H, A_em, A_nrwa, A_ph = Ham_RC_gen(H_sub, sigma, wRC, kappa, N,
-                                        rotating=rotating,
-                                        shift_op=shift_op, shift=shift, 
-                                        w_laser=w_laser)
-    if not new:
-        L_RC, Z =  liouvillian_build(H, A_ph+A_ph.dag(), gamma, wRC, T_ph)
-    else:
-        L_RC, Z =  liouvillian_build_new(H, A_ph+A_ph.dag(), gamma, wRC, T_ph)
-    return L_RC, H, A_em, A_ph, Z, wRC, kappa, gamma
+    PARAMS, H_S, A_nrwa, A_RC, A_L, A_R = Ham_and_param_RC_mapping(PARAMS)
+
+    L_RC, Z =  liouvillian_build(H_S, A_RC+A_RC.dag(), PARAMS['gamma_RC'], PARAMS['Omega_RC'], PARAMS['T_ph'])
+
+    return PARAMS, L_RC, H_S, A_nrwa, A_RC, A_L, A_R
+
+
+
+
+
 
 
 I_sys = identity(2)

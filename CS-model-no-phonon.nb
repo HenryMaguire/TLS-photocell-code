@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    134017,       3462]
-NotebookOptionsPosition[    132420,       3407]
-NotebookOutlinePosition[    132756,       3422]
-CellTagsIndexPosition[    132713,       3419]
+NotebookDataLength[    135863,       3520]
+NotebookOptionsPosition[    134114,       3460]
+NotebookOutlinePosition[    134454,       3475]
+CellTagsIndexPosition[    134411,       3472]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -33,6 +33,59 @@ Cell[BoxData[""], "Input",
    3.762246481022707*^9}, {3.7622465378231173`*^9, 3.7622466396379967`*^9}, 
    3.762256613999034*^9, 3.7626836336065483`*^9, {3.762686655982213*^9, 
    3.762686680568965*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"FermiFactor", "[", 
+    RowBox[{"\[Omega]_", ",", " ", "T_", ",", " ", "\[Mu]_"}], "]"}], ":=", 
+   " ", 
+   FractionBox["1", 
+    RowBox[{
+     RowBox[{"Exp", "[", 
+      FractionBox[
+       RowBox[{"(", 
+        RowBox[{"\[Omega]", "-", "\[Mu]"}], ")"}], 
+       RowBox[{"kB", " ", "T"}]], "]"}], "+", "1"}]]}], ";"}]], "Input",
+ CellChangeTimes->{{3.763287014301342*^9, 3.763287029596938*^9}, {
+   3.763287066982016*^9, 3.763287168219407*^9}, 3.7632872285968122`*^9}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"J", "[", "\[Omega]_", "]"}], ":=", " ", 
+   FractionBox[
+    RowBox[{"\[Alpha]", " ", "\[CapitalGamma]", " ", 
+     RowBox[{"\[Omega]0", "^", "2"}], " ", "\[Omega]"}], 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"\[Omega]0", "^", "2"}], " ", "-", " ", 
+         RowBox[{"\[Omega]", "^", "2"}]}], ")"}], "^", "2"}], " ", "+", " ", 
+      RowBox[{
+       RowBox[{"\[CapitalGamma]", "^", "2"}], " ", 
+       RowBox[{"\[Omega]", "^", "2"}]}]}], ")"}]]}], " ", 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Limit", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "-", 
+      RowBox[{"FermiFactor", "[", 
+       RowBox[{"\[Omega]", ",", " ", "T", ",", " ", "\[Mu]"}], "]"}]}], " ", 
+     ")"}], 
+    RowBox[{"J", "[", "\[Omega]", "]"}]}], ",", " ", 
+   RowBox[{"\[Omega]", "\[Rule]", "0"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.76328717797777*^9, 3.763287182635975*^9}, {
+  3.763287220005392*^9, 3.763287270302484*^9}}],
+
+Cell[BoxData["0"], "Output",
+ CellChangeTimes->{{3.763287261764621*^9, 3.763287274338513*^9}}]
+}, Open  ]],
 
 Cell[BoxData[{
  RowBox[{
@@ -3406,7 +3459,7 @@ Cell[BoxData[""], "Input",
 }, Open  ]]
 },
 WindowSize->{1523, 1017},
-WindowMargins->{{19, 1278}, {Automatic, 36}},
+WindowMargins->{{0, Automatic}, {Automatic, 66}},
 FrontEndVersion->"11.0 for Linux x86 (64-bit) (September 21, 2016)",
 StyleDefinitions->"Default.nb"
 ]
@@ -3423,46 +3476,51 @@ CellTagsIndex->{}
 Notebook[{
 Cell[558, 20, 196, 5, 68, "Input"],
 Cell[757, 27, 496, 7, 32, "Input"],
-Cell[1256, 36, 11761, 306, 456, "Input"],
-Cell[13020, 344, 6892, 163, 249, "Input"],
-Cell[19915, 509, 8796, 250, 240, "Input"],
+Cell[1256, 36, 517, 14, 62, "Input"],
 Cell[CellGroupData[{
-Cell[28736, 763, 1821, 45, 136, "Input"],
-Cell[30560, 810, 146, 2, 32, "Output"]
+Cell[1798, 54, 1040, 29, 80, "Input"],
+Cell[2841, 85, 94, 1, 32, "Output"]
+}, Open  ]],
+Cell[2950, 89, 11761, 306, 456, "Input"],
+Cell[14714, 397, 6892, 163, 249, "Input"],
+Cell[21609, 562, 8796, 250, 240, "Input"],
+Cell[CellGroupData[{
+Cell[30430, 816, 1821, 45, 136, "Input"],
+Cell[32254, 863, 146, 2, 32, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[30743, 817, 127, 2, 32, "Input"],
-Cell[30873, 821, 20012, 470, 299, "Output"]
+Cell[32437, 870, 127, 2, 32, "Input"],
+Cell[32567, 874, 20012, 470, 299, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[50922, 1296, 1030, 26, 35, "Input"],
-Cell[51955, 1324, 36156, 797, 455, "Output"]
+Cell[52616, 1349, 1030, 26, 35, "Input"],
+Cell[53649, 1377, 36156, 797, 455, "Output"]
 }, {2}]],
-Cell[88123, 2124, 10827, 305, 334, "Input"],
+Cell[89817, 2177, 10827, 305, 334, "Input"],
 Cell[CellGroupData[{
-Cell[98975, 2433, 1232, 31, 101, "Input"],
-Cell[100210, 2466, 70, 1, 32, "Output"]
+Cell[100669, 2486, 1232, 31, 101, "Input"],
+Cell[101904, 2519, 70, 1, 32, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[100317, 2472, 163, 2, 66, "Chapter"],
-Cell[100483, 2476, 217, 3, 32, "Input"],
-Cell[100703, 2481, 4559, 132, 331, "Input"],
+Cell[102011, 2525, 163, 2, 66, "Chapter"],
+Cell[102177, 2529, 217, 3, 32, "Input"],
+Cell[102397, 2534, 4559, 132, 331, "Input"],
 Cell[CellGroupData[{
-Cell[105287, 2617, 6707, 197, 241, "Input"],
-Cell[111997, 2816, 1891, 46, 54, "Output"]
+Cell[106981, 2670, 6707, 197, 241, "Input"],
+Cell[113691, 2869, 1891, 46, 54, "Output"]
 }, Open  ]]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[113937, 2868, 163, 2, 66, "Chapter"],
-Cell[114103, 2872, 117, 2, 34, "Input"],
-Cell[114223, 2876, 5876, 160, 354, "Input"],
+Cell[115631, 2921, 163, 2, 66, "Chapter"],
+Cell[115797, 2925, 117, 2, 34, "Input"],
+Cell[115917, 2929, 5876, 160, 354, "Input"],
 Cell[CellGroupData[{
-Cell[120124, 3040, 9334, 281, 333, "Input"],
-Cell[129461, 3323, 2490, 67, 54, "Output"]
+Cell[121818, 3093, 9334, 281, 333, "Input"],
+Cell[131155, 3376, 2490, 67, 54, "Output"]
 }, Open  ]],
-Cell[131966, 3393, 218, 4, 32, "Input"],
-Cell[132187, 3399, 122, 2, 32, "Input"],
-Cell[132312, 3403, 92, 1, 32, "Input"]
+Cell[133660, 3446, 218, 4, 32, "Input"],
+Cell[133881, 3452, 122, 2, 32, "Input"],
+Cell[134006, 3456, 92, 1, 32, "Input"]
 }, Open  ]]
 }
 ]

@@ -7,9 +7,11 @@ import pickle
 import sympy
 
 print( "utils imported")
+kB = 0.695
 
 ev_to_inv_cm = 8065.5
 inv_ps_to_inv_cm = 5.309
+rate_for_ns_lifetime = (1e-3*inv_ps_to_inv_cm)/ev_to_inv_cm  # this is in eV
 
 def load_obj(name ):
     with open(name + '.pickle', 'rb') as f:
@@ -89,14 +91,23 @@ def J_flat(omega, Gamma, omega_0):
 #def J_overdamped(omega, alpha, wc):
 #    return alpha*wc*omega/(omega**2+wc**2)
 
+def print_PARAMS(PARAMS):
+    print('\t'.join(["{} : {}".format(i, j) for i, j in PARAMS.items() if type(j) != qt.qobj.Qobj]))
 
 """def J_underdamped(omega, Gamma, omega_0, alpha=0.):
     return alpha*Gamma*pow(omega_0,2)*omega/(pow(pow(omega_0,2)-pow(omega,2),2)+(Gamma**2 *omega**2))
 """
 
+
+
+
 def J_underdamped(omega, Gamma, omega_0, alpha=0.):
     return alpha*Gamma*(omega_0**2)*omega/(((omega_0**2)-(omega**2))**2+(Gamma*omega)**2)
 
+def SD_peak_position(Gamma, alpha, w_0):
+    Omega = np.linspace(0,w_0*50,10000)
+    J_w = np.array([J_underdamped(w, Gamma, w_0, alpha=0.) for w in Omega])
+    return Omega[np.argmax(J_w)]
 
 def rate_up(w, n, gamma, J, w_0):
     rate = 0.5 * pi * n * J(w, gamma, w_0)
