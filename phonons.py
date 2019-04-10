@@ -126,12 +126,12 @@ def mapped_operators_and_constants(H_sub, sigma, T_ph, Gamma, Omega, alpha_ph, N
     return H, A_em, A_ph, wRC, gamma, kappa
 
                                     
-def RC_mapping(PARAMS):
+def RC_mapping(PARAMS, silent=False):
     
     # we define all of the RC parameters by the underdamped spectral density
     wRC, gamma, kappa, energy_shift = mapped_constants(PARAMS['Omega_ph'], PARAMS['alpha_ph'], PARAMS['Gamma_ph'])
 
-    PARAMS, H_S, A_nrwa, A_RC, A_L, A_R = Ham_and_param_RC_mapping(PARAMS)
+    PARAMS, H_S, A_nrwa, A_RC, A_L, A_R = Ham_and_param_RC_mapping(PARAMS, silent=silent)
 
     L_RC, Z =  liouvillian_build(H_S, A_RC+A_RC.dag(), PARAMS['gamma_RC'], PARAMS['Omega_RC'], PARAMS['T_ph'])
 
