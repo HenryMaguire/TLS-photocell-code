@@ -92,7 +92,7 @@ def J_flat(omega, Gamma, omega_0):
 #    return alpha*wc*omega/(omega**2+wc**2)
 
 def print_PARAMS(PARAMS):
-    print('\t'.join(["{} : {}".format(i, j) for i, j in PARAMS.items() if type(j) != qt.qobj.Qobj]))
+    print('\n'.join(["{} : {}".format(i, j) for i, j in PARAMS.items() if type(j) != qt.qobj.Qobj]))
 
 """def J_underdamped(omega, Gamma, omega_0, alpha=0.):
     return alpha*Gamma*pow(omega_0,2)*omega/(pow(pow(omega_0,2)-pow(omega,2),2)+(Gamma**2 *omega**2))
