@@ -35,7 +35,7 @@ def make_expectation_operators(PARAMS):
     
     return dict((key_val[0], key_val[1]) for key_val in zip(labels, fullspace_ops))
 
-def PARAMS_setup(exciton_energy=2., binding_energy=0., mu_L=0, bias_voltage=2., T_C=300., T_EM=5800, deformation_ratio=5e-1,
+def PARAMS_setup(bandgap=1.4, valence_energy = 100e-3, binding_energy=0., mu=0, bias_voltage=2., T_C=300., T_EM=5800, deformation_ratio=5e-1,
                 alpha_ph=10e-3, Gamma_ph=1e-3, Omega_ph=10e-3, delta_leads=3e-3, leads_lifetime=1, N=14, radiative_lifetime=1, silent=True):
     # fix all parameters for typical symmetries used and parameter space reduction
     # Output: parameters dict
@@ -45,20 +45,22 @@ def PARAMS_setup(exciton_energy=2., binding_energy=0., mu_L=0, bias_voltage=2., 
     Gamma_EM = rate_for_ns_lifetime*ev_to_inv_cm/radiative_lifetime
     Gamma_leads = rate_for_ns_lifetime*ev_to_inv_cm/leads_lifetime
 
-    exciton_energy*=ev_to_inv_cm
+    bandgap*=ev_to_inv_cm
+    valence_energy*=ev_to_inv_cm
     binding_energy*=ev_to_inv_cm
     alpha_ph*=ev_to_inv_cm
     Gamma_ph*=ev_to_inv_cm
     Omega_ph*=ev_to_inv_cm
     delta_leads*=ev_to_inv_cm
-    
-    mu_L *= ev_to_inv_cm
-    mu_R = mu_L  + bias_voltage*ev_to_inv_cm
-
+    mu*=ev_to_inv_cm
+    bias_voltage*=ev_to_inv_cm
+    e = 1.
+    mu_L = mu-e*bias_voltage
+    mu_R = mu+e*bias_voltage
     # Impose symmetries
-    omega_c = (exciton_energy+binding_energy)/2 # assumes hole and electron have same energy
-    omega_v =  (exciton_energy+binding_energy)/2 # assumes hole and electron have same energy
-    omega_exciton = exciton_energy
+    omega_c = valence_energy+bandgap
+    omega_v =  valence_energy # assumes hole and electron have same energy
+    omega_exciton = omega_v+omega_c-binding_energy
     Omega_L = -omega_v # position of the left SD needs to be negative of valence band energy
     Omega_R =  omega_c
     delta_L = delta_R = delta_leads #  width of the lead SD
@@ -73,7 +75,7 @@ def PARAMS_setup(exciton_energy=2., binding_energy=0., mu_L=0, bias_voltage=2., 
 
     PARAM_names = ['omega_c', 'omega_v', 'omega_exciton', 'Gamma_EM', 'alpha_ph', 'Gamma_ph', 'Omega_ph', 'T_ph', 'deformation_ratio','N', 
                    'Gamma_L', 'Gamma_R', 'delta_L', 'delta_R', 'Omega_L', 'Omega_R', 'mu_L', 'mu_R', 'T_L', 'T_R', 'T_EM', 'J', 
-                   'leads_lifetime', 'radiative_lifetime', 'binding_energy', 'H_sub', 'A_ph', 'A_EM', 'A_L', 'A_R', 'sys_dim']
+                   'leads_lifetime', 'radiative_lifetime', 'binding_energy', 'H_sub', 'A_ph', 'A_EM', 'A_L', 'A_R', 'sys_dim', 'mu', 'bandgap']
     
     scope = locals() # Lets eval below use local variables, not global
     PARAMS = dict((name, eval(name, scope)) for name in PARAM_names)
