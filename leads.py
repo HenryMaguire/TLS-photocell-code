@@ -75,22 +75,21 @@ def L_R_lead_dissipators(H, PARAMS, real_only=False, silent=True):
     for k in range(len(energies)):
         for l in range(len(energies)):
             eta_kl = energies[k] - energies[l]
-            if (abs(eta_kl)>0): # take limit of rates going to zero
+            #if (abs(eta_kl)>0): # take limit of rates going to zero
+            d_h_lk = d_h.matrix_element(states[l].dag(), states[k])
+            if (abs(d_h_lk)>0): # No need to do anything if the matrix element is zero
                 rate_up_L = Lambda_up_L(-eta_kl)
                 rate_down_L = Lambda_down_L(-eta_kl)
-                d_h_lk = d_h.matrix_element(states[l].dag(), states[k])
-                if (abs(d_h_lk)>0): # No need to do anything if the matrix element is zero
-                    LK_dyad = states[l]*states[k].dag()
-                    Z_1 += rate_up_L.conjugate()*d_h_lk*LK_dyad
-                    Z_2 += rate_down_L.conjugate()*d_h_lk*LK_dyad
-                
+                LK_dyad = states[l]*states[k].dag()
+                Z_1 += rate_up_L.conjugate()*d_h_lk*LK_dyad
+                Z_2 += rate_down_L.conjugate()*d_h_lk*LK_dyad
+            d_e_lk = d_e.matrix_element(states[l].dag(), states[k])
+            if (abs(d_e_lk)>0):  # No need to do anything if the matrix element is zero
                 rate_up_R = Lambda_up_R(eta_kl) # evaluated at positive freq diffs
                 rate_down_R = Lambda_down_R(eta_kl)
-                d_e_lk = d_e.matrix_element(states[l].dag(), states[k])
-                if (abs(d_e_lk)>0):  # No need to do anything if the matrix element is zero
-                    LK_dyad = states[l]*states[k].dag()
-                    Z_4 += rate_up_R*d_e_lk*LK_dyad
-                    Z_3 += rate_down_R*d_e_lk*LK_dyad
+                LK_dyad = states[l]*states[k].dag()
+                Z_4 += rate_up_R*d_e_lk*LK_dyad
+                Z_3 += rate_down_R*d_e_lk*LK_dyad
     # Left lead
     L_L = commutator_term1(d_h.dag(), Z_1) 
     L_L += commutator_term2(Z_2, d_h.dag())
