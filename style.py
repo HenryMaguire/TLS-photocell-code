@@ -29,6 +29,7 @@ colourWheel =['#329932',
 
 plt.style.use('ggplot')
 plt.rcParams["axes.grid"] = True
+plt.rcParams['grid.linestyle'] = "-"
 plt.rcParams["axes.edgecolor"] = "0.15"
 plt.rcParams["axes.linewidth"]  = 1.5
 plt.rcParams['axes.facecolor'] = 'white'
