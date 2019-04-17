@@ -58,8 +58,9 @@ def PARAMS_setup(bandgap=1.4, valence_energy = 100e-3, binding_energy=0., mu=0, 
     mu_L = mu-e*bias_voltage
     mu_R = mu+e*bias_voltage
     # Impose symmetries
-    omega_c = valence_energy+bandgap
+    omega_c = 1.*valence_energy+bandgap
     omega_v =  valence_energy # assumes hole and electron have same energy
+    
     omega_exciton = omega_v+omega_c-binding_energy
     Omega_L = -omega_v # position of the left SD needs to be negative of valence band energy
     Omega_R =  omega_c
