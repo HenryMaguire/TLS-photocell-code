@@ -4,6 +4,11 @@ from qutip import basis
 
 from qutip import basis, qeye, destroy, tensor, thermal_dm, steadystate
 
+
+import phonons as RC
+import optical as EM
+import leads as FL
+
 #State and operator definitions
 vac_ket = basis(4,0)
 hole_ket = basis(4,1)
@@ -20,6 +25,8 @@ d_e = hole_ket*exciton_ket.dag() - vac_ket*electron_ket.dag() # destroys electro
 d_exciton = vac_ket*exciton_ket.dag() # destroys excitons
 
 labels = ['vac', 'hole', 'electron', 'exciton', 'd_h', 'd_e','real_coherence', 'imag_coherence']
+
+
 
 def make_expectation_operators(PARAMS):
     # makes a dict: keys are names of observables values are operators
@@ -87,3 +94,30 @@ def PARAMS_setup(bandgap=1.4, valence_energy = 100e-3, binding_energy=0., mu=0, 
     return PARAMS
 
 
+
+def build_L(PARAMS, silent=True):
+    """
+    Builds the EM additive and non-additive versions of the Liouvillian.
+    Returns a dict
+    """
+    # RC mapping on operators etc
+    PARAMS, L_RC, H_S, A_nrwa, A_RC, A_L, A_R = RC.RC_mapping(PARAMS, silent=silent)
+    H = H_S # H_S
+    H_add = tensor(PARAMS['H_sub'], qeye(PARAMS['N']))
+    # optical liouv and additive
+    if PARAMS['radiative_lifetime'] == np.infty:
+        L_EM_add = L_EM = 0
+    else:
+        L_EM = EM.L_non_rwa(H_S, A_nrwa, PARAMS['omega_exciton'], PARAMS['Gamma_EM'], 
+                            PARAMS['T_EM'], PARAMS['J'],
+                                    silent=silent, tol=0)
+        L_EM_add = EM.L_non_rwa(H_add, A_nrwa, PARAMS['omega_exciton'], PARAMS['Gamma_EM'], 
+                            PARAMS['T_EM'], PARAMS['J'], silent=silent, tol=0)
+    #  Left and right leads and additive
+    #L_L, L_R = FL.L_R_lead_dissipators(H_S, PARAMS, real_only=False, silent=False)
+    L_L_lindblad, L_R_lindblad = FL.L_left_and_right_secular(H, PARAMS)
+    # dict of various combinations    
+    L_dict = {'PARAMS': PARAMS, 'H_S': H_S, 'L_EM': L_EM, 'L_R_lindblad': L_R_lindblad, 
+                                            'L_lindblad' : L_EM+L_L_lindblad+L_R_lindblad+L_RC,
+                                             'L_lindblad_add_EM' : L_EM_add+L_L_lindblad+L_R_lindblad+L_RC}
+    return L_dict # dict

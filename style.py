@@ -29,7 +29,8 @@ colourWheel =['#329932',
 
 plt.style.use('ggplot')
 plt.rcParams["axes.grid"] = True
-plt.rcParams['grid.linestyle'] = "-"
+plt.rc('grid', linestyle="--", color='grey')
+plt.rcParams['grid.linestyle'] = "--"
 plt.rcParams["axes.edgecolor"] = "0.15"
 plt.rcParams["axes.linewidth"]  = 1.5
 plt.rcParams['axes.facecolor'] = 'white'
@@ -42,5 +43,6 @@ plt.rc('text', usetex=True)
 plt.rc('text.latex', preamble=r'\usepackage{amsmath} \usepackage{physics} ')
 colours = ['#1E90FF', '#3CB371', '#FFA500', '#FF0000']
 
+
 colors = [c['color'] for c in plt.rcParams['axes.prop_cycle']]
-colors+=colors
+colors+=colours

@@ -52,6 +52,11 @@ def rate_up(epsilon, N, alpha):
 def rate_down(epsilon, N, alpha):
     return 0.5*np.pi*alpha*(N+1)
 
+def EM_rates(PARAMS):
+    Gamma = 2*pi*J_minimal(PARAMS['omega_exciton'], PARAMS['Gamma_EM'], PARAMS['omega_exciton'], alpha=0.)
+    n_occ = Occupation(PARAMS['omega_exciton'], PARAMS['T_EM'])
+    return Gamma*(n_occ+1), Gamma*(n_occ)
+
 def coth(x):
     return float(sympy.coth(x))
 

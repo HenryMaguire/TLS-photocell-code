@@ -52,6 +52,70 @@ def Lamdba_complex_rate(eps, J, mu, T, height, width, pos, type='m', plot_integr
         raise ValueError
 
 
+
+
+def secular_term(state_j, state_k):
+    jk = state_j*state_k.dag()
+    kj = jk.dag()
+    jj = state_j*state_j.dag()
+    return 2*sprepost(kj, jk) - (spre(jj) + spost(jj))
+
+def leads_rates(PARAMS):
+    Lambda_12_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+                                                    PARAMS['delta_R'], PARAMS['Omega_R'], type='m', real_only=True)
+    Lambda_21_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+                                                    PARAMS['delta_R'], PARAMS['Omega_R'], type='p', real_only=True)
+    
+    Lambda_12_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+                                                    PARAMS['delta_L'], PARAMS['Omega_L'], type='m', real_only=True)
+    Lambda_21_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+                                                    PARAMS['delta_L'], PARAMS['Omega_L'], type='p', real_only=True)
+    d_e_dag_lindblad_rate = Lambda_21_R(PARAMS['omega_c'])
+    d_e_lindblad_rate = Lambda_12_R(PARAMS['omega_c'])
+    d_h_dag_lindblad_rate = Lambda_12_L(-PARAMS['omega_v'])
+    d_h_lindblad_rate = Lambda_21_L(-PARAMS['omega_v'])
+
+    return d_h_dag_lindblad_rate, d_h_lindblad_rate, d_e_lindblad_rate, d_e_dag_lindblad_rate
+
+
+def L_left_and_right_secular(H, PARAMS):
+    ti = time.time()
+    energies, states = H.eigenstates()
+    A_R = tensor(PARAMS['A_R'], qeye(PARAMS['N']))
+    A_L = tensor(PARAMS['A_L'], qeye(PARAMS['N']))
+    H_dim = len(energies)
+    Lambda_up_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+                                                    PARAMS['delta_R'], PARAMS['Omega_R'], type='p', real_only=True)
+    Lambda_down_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+                                                    PARAMS['delta_R'], PARAMS['Omega_R'], type='m', real_only=True)
+    
+    Lambda_up_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+                                                    PARAMS['delta_L'], PARAMS['Omega_L'], type='p', real_only=True)
+    Lambda_down_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+                                                    PARAMS['delta_L'], PARAMS['Omega_L'], type='m', real_only=True)
+    
+    L_L = L_R = 0
+    for j in range(H_dim):
+        for k in range(H_dim):
+            omega_jk = energies[j]-energies[k]
+            state_j, state_k = states[j], states[k]
+            
+            A_dag_jk = A_R.dag().matrix_element(state_j, state_k)
+            A_kj = A_R.matrix_element(state_k, state_j)
+            coeff = A_dag_jk*A_kj
+            if np.abs(coeff) > 0:
+                L_R += Lambda_down_R(omega_jk)*coeff*secular_term(state_j, state_k)
+                L_R += Lambda_up_R(omega_jk)*coeff*secular_term(state_k, state_j)
+            
+            A_dag_jk = A_L.dag().matrix_element(state_j, state_k)
+            A_kj = A_L.matrix_element(state_k, state_j)
+            coeff = A_dag_jk*A_kj
+            if np.abs(coeff) > 0:
+                L_L += Lambda_up_L(-omega_jk)*coeff*secular_term(state_j, state_k)
+                L_L += Lambda_down_L(-omega_jk)*coeff*secular_term(state_k, state_j)
+    #print(time.time() - ti)
+    return L_L, L_R
+
 def L_R_lead_dissipators(H, PARAMS, real_only=False, silent=True):
     ti = time.time()
 
