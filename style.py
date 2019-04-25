@@ -32,7 +32,7 @@ plt.rcParams["axes.grid"] = True
 plt.rc('grid', linestyle="--", color='grey')
 plt.rcParams['grid.linestyle'] = "--"
 plt.rcParams["axes.edgecolor"] = "0.15"
-plt.rcParams["axes.linewidth"]  = 1.5
+plt.rcParams["axes.linewidth"]  = 1.6
 plt.rcParams['axes.facecolor'] = 'white'
 plt.rcParams['font.size'] = 18
 plt.rcParams['legend.fontsize'] = 'medium'
