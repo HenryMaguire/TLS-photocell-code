@@ -15,7 +15,7 @@ rate_for_ns_lifetime = (1e-3*inv_ps_to_inv_cm)/ev_to_inv_cm  # this is in eV
 
 
 def current_from_L(L_dict, n_c_RC):
-    ss = steadystate(L_dict['H_S'], [L_dict['L_lindblad']])
+    ss = steadystate(L_dict['H_S'], [L_dict['L']])
     return -(qt.vector_to_operator(L_dict['L_R']*qt.operator_to_vector(ss))*n_c_RC).tr()
 
 def current_from_ss(ss, L_R, n_c_RC):

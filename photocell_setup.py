@@ -24,7 +24,7 @@ d_h = vac_ket*hole_ket.dag() + electron_ket*exciton_ket.dag() # destroys holes
 d_e = hole_ket*exciton_ket.dag() - vac_ket*electron_ket.dag() # destroys electrons
 d_exciton = vac_ket*exciton_ket.dag() # destroys excitons
 
-labels = ['vac', 'hole', 'electron', 'exciton', 'd_h', 'd_e','real_coherence', 'imag_coherence']
+labels = ['vac', 'hole', 'electron', 'exciton', 'd_h', 'd_e','real_coherence', 'imag_coherence', 'CC_pop']
 
 
 
@@ -32,14 +32,15 @@ def make_expectation_operators(PARAMS):
     # makes a dict: keys are names of observables values are operators
     I_sys = qeye(PARAMS['sys_dim'])
     I = qeye(PARAMS['N'])
-
+    c = qt.destroy(PARAMS['N'])
     # electronic operators
-     # site populations site coherences, eig pops, eig cohs
-    subspace_ops = [vac_proj, hole_proj, electron_proj, exciton_proj, 
+    # site populations site coherences, eig pops, eig cohs
+    subspace_ops = [vac_proj, hole_proj, electron_proj, exciton_proj, d_h, d_e,
                     0.5*(d_exciton+d_exciton.dag()), 1j*0.5*(d_exciton.dag()-d_exciton)]
     # put operators into full RC tensor product basis
     fullspace_ops = [tensor(op, I) for op in subspace_ops]
-    
+    fullspace_ops.append(tensor(I_sys, c.dag()*c))
+    assert(len(fullspace_ops) == len(labels))
     return dict((key_val[0], key_val[1]) for key_val in zip(labels, fullspace_ops))
 
 def PARAMS_setup(bandgap=1.4, valence_energy = 100e-3, binding_energy=0., mu=0, bias_voltage=2., T_C=300., T_EM=5800, deformation_ratio=5e-1,
@@ -115,9 +116,12 @@ def build_L(PARAMS, silent=True):
                             PARAMS['T_EM'], PARAMS['J'], silent=silent, tol=0)
     #  Left and right leads and additive
     #L_L, L_R = FL.L_R_lead_dissipators(H_S, PARAMS, real_only=False, silent=False)
-    L_L_lindblad, L_R_lindblad = FL.L_left_and_right_secular(H, PARAMS)
+    L_L, L_R = FL.L_left_and_right_secular(H, PARAMS)
+    L_L_add, L_R_add = FL.L_left_and_right_secular(H_add, PARAMS)
     # dict of various combinations    
-    L_dict = {'PARAMS': PARAMS, 'H_S': H_S, 'L_EM': L_EM, 'L_R_lindblad': L_R_lindblad, 
-                                            'L_lindblad' : L_EM+L_L_lindblad+L_R_lindblad+L_RC,
-                                             'L_lindblad_add_EM' : L_EM_add+L_L_lindblad+L_R_lindblad+L_RC}
+    L_dict = {'PARAMS': PARAMS, 'H_S': H_S, 'L_EM': L_EM, 'L_R': L_R, 'L_R_add': L_R_add,
+                                            'L' : L_EM+L_L+L_R+L_RC,
+                                            'L_add_EM' : L_EM_add+L_L+L_R+L_RC,
+                                            'L_add_leads' : L_EM+L_L_add+L_R_add+L_RC,
+                                            'L_add' : L_EM_add+L_L_add+L_R_add+L_RC}
     return L_dict # dict
