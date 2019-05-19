@@ -119,7 +119,7 @@ def build_L(PARAMS, silent=True):
     L_L, L_R = FL.L_left_and_right_secular(H, PARAMS)
     L_L_add, L_R_add = FL.L_left_and_right_secular(H_add, PARAMS)
     # dict of various combinations    
-    L_dict = {'PARAMS': PARAMS, 'H_S': H_S, 'L_EM': L_EM, 'L_R': L_R, 'L_R_add': L_R_add,
+    L_dict = {'PARAMS': PARAMS, 'H_S': H_S, 'L_EM': L_EM, 'L_L': L_L, 'L_R': L_R, 'L_R_add': L_R_add,
                                             'L' : L_EM+L_L+L_R+L_RC,
                                             'L_add_EM' : L_EM_add+L_L+L_R+L_RC,
                                             'L_add_leads' : L_EM+L_L_add+L_R_add+L_RC,
