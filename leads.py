@@ -10,6 +10,9 @@ from utils import kB
 
 def J_Lorentzian(omega, delta, omega_0, Gamma=0.):
     return (Gamma*delta**2/(2*pi))/(((omega-omega_0)**2)+delta**2)
+def J_flat(omega, delta, omega_0, Gamma=0.):
+    return Gamma/(2*pi)
+
 
 def fermi_occ(eps, T, mu):
     T, mu =  float(T), float(mu)
@@ -61,14 +64,15 @@ def secular_term(state_j, state_k):
     return 2*sprepost(kj, jk) - (spre(jj) + spost(jj))
 
 def leads_rates(PARAMS):
-    Lambda_12_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    J_leads = J_Lorentzian
+    Lambda_12_R = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='m', real_only=True)
-    Lambda_21_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    Lambda_21_R = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='p', real_only=True)
     
-    Lambda_12_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_12_L = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='m', real_only=True)
-    Lambda_21_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_21_L = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='p', real_only=True)
     d_e_dag_lindblad_rate = Lambda_21_R(PARAMS['omega_c'])
     d_e_lindblad_rate = Lambda_12_R(PARAMS['omega_c'])
@@ -78,20 +82,24 @@ def leads_rates(PARAMS):
     return d_h_dag_lindblad_rate, d_h_lindblad_rate, d_e_lindblad_rate, d_e_dag_lindblad_rate
 
 
-def L_left_and_right_secular(H, PARAMS):
+def L_left_and_right_secular(H, PARAMS, lead_SD='Lorentzian'):
     ti = time.time()
     energies, states = H.eigenstates()
     A_R = tensor(PARAMS['A_R'], qeye(PARAMS['N']))
     A_L = tensor(PARAMS['A_L'], qeye(PARAMS['N']))
     H_dim = len(energies)
-    Lambda_up_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    if lead_SD == 'flat':
+        J_leads = J_flat
+    else:
+        J_leads = J_Lorentzian
+    Lambda_up_R = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='p', real_only=True)
-    Lambda_down_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    Lambda_down_R = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='m', real_only=True)
     
-    Lambda_up_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_up_L = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='p', real_only=True)
-    Lambda_down_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_down_L = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='m', real_only=True)
     
     L_L = L_R = 0
@@ -118,20 +126,20 @@ def L_left_and_right_secular(H, PARAMS):
 
 def L_R_lead_dissipators(H, PARAMS, real_only=False, silent=True):
     ti = time.time()
-
+    J_leads = J_Lorentzian
     I = qeye(PARAMS['N'])
     d_h = tensor(PARAMS['A_L'], I)
 
 
-    Lambda_up_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_up_L = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='p', real_only=False)
-    Lambda_down_L = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_down_L = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='m', real_only=False)
     d_e = tensor(PARAMS['A_R'], I)
 
-    Lambda_up_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    Lambda_up_R = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='p', real_only=False)
-    Lambda_down_R = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    Lambda_down_R = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='m', real_only=False)
     energies, states = H.eigenstates()
     # Make Z_1 and Z_2
@@ -171,10 +179,10 @@ def L_R_lead_dissipators(H, PARAMS, real_only=False, silent=True):
 def L_left_nonadditive(H, PARAMS):
     I = qeye(PARAMS['N'])
     d_h = tensor(PARAMS['A_L'], I)
-
-    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    J_leads = J_Lorentzian
+    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='p', real_only=False)
-    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='m', real_only=False)
     energies, states = H.eigenstates()
     # Make Z_1 and Z_2
@@ -200,10 +208,10 @@ def L_left_nonadditive(H, PARAMS):
 def L_right_nonadditive(H, PARAMS):
     I = qeye(PARAMS['N'])
     d_e = tensor(PARAMS['A_R'], I)
-
-    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    J_leads = J_Lorentzian
+    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='p', real_only=False)
-    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='m', real_only=False)
     energies, states = H.eigenstates()
     # Make Z_1 and Z_2
@@ -228,6 +236,7 @@ def L_right_nonadditive(H, PARAMS):
     return -L
 
 def L_left_additive(PARAMS):
+    J_leads = J_Lorentzian
     vac_ket = basis(4,0)
     hole_ket = basis(4,1)
     electron_ket = basis(4,2)
@@ -237,11 +246,11 @@ def L_left_additive(PARAMS):
     hole_proj = tensor(hole_ket*hole_ket.dag(), I)
     electron_proj = tensor(electron_ket*electron_ket.dag(), I)
     exciton_proj = tensor(exciton_ket*exciton_ket.dag(), I)
-
+    
     d_h = tensor(vac_ket*hole_ket.dag() + electron_ket*exciton_ket.dag(), I) # destroys holes 
-    Lambda_up = lambda x :  Lamdba_complex_rate(-x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_up = lambda x :  Lamdba_complex_rate(-x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='p', real_only=False)
-    Lambda_down = lambda x :  Lamdba_complex_rate(-x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_down = lambda x :  Lamdba_complex_rate(-x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='m', real_only=False)
     eta_xc = PARAMS['omega_exciton']-PARAMS['omega_c']
     Z_1 = Lambda_up(PARAMS['omega_v'])*vac_ket*hole_ket.dag() + Lambda_up(eta_xc)*electron_ket*exciton_ket.dag()
@@ -255,6 +264,7 @@ def L_left_additive(PARAMS):
     return -L
 
 def L_right_additive(PARAMS):
+    J_leads = J_Lorentzian
     vac_ket = basis(4,0)
     hole_ket = basis(4,1)
     electron_ket = basis(4,2)
@@ -267,9 +277,9 @@ def L_right_additive(PARAMS):
 
     d_e = tensor(hole_ket*exciton_ket.dag() - vac_ket*electron_ket.dag(), I) # destroys holes 
     # Lamdba_complex_rate(eps, J, mu, T, height, width, pos, type='m', plot_integrands=False, real_only=False)
-    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['alpha_R'], 
+    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['alpha_R'], 
                                                     PARAMS['Gamma_R'], PARAMS['Omega_R'], type='p', real_only=False)
-    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['alpha_R'], 
+    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['alpha_R'], 
                                                     PARAMS['Gamma_R'], PARAMS['Omega_R'], type='m', real_only=False)
     eta_xv = PARAMS['omega_exciton']-PARAMS['omega_v']
     Z_1 = Lambda_down(eta_xv).conjugate()*hole_ket*exciton_ket.dag() - Lambda_down(PARAMS['omega_c']).conjugate()*vac_ket*electron_ket.dag()
@@ -294,10 +304,10 @@ def commutator_term2(O1, O2):
 def L_right_lindblad(H, PARAMS):
     I = qeye(PARAMS['N'])
     d_e = tensor(PARAMS['A_R'], I)
-
-    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    J_leads = J_Lorentzian
+    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='p', real_only=True)
-    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
+    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
                                                     PARAMS['delta_R'], PARAMS['Omega_R'], type='m', real_only=True)
     energies, states = H.eigenstates()
     L=0
@@ -323,10 +333,10 @@ def L_right_lindblad(H, PARAMS):
 def L_left_lindblad(H, PARAMS):
     I = qeye(PARAMS['N'])
     d_h = tensor(PARAMS['A_L'], I)
-
-    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    J_leads = J_Lorentzian
+    Lambda_up = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='p', real_only=True)
-    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_Lorentzian, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
+    Lambda_down = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_L'], PARAMS['T_L'], PARAMS['Gamma_L'], 
                                                     PARAMS['delta_L'], PARAMS['Omega_L'], type='m', real_only=True)
     energies, states = H.eigenstates()
     
