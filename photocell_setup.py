@@ -46,7 +46,7 @@ def make_expectation_operators(PARAMS):
     return dict((key_val[0], key_val[1]) for key_val in zip(labels, fullspace_ops))
 
 def PARAMS_setup(bandgap=1.4, valence_energy = 100e-3, binding_energy=0., mu=0, bias_voltage=2., T_C=300., T_EM=5800, deformation_ratio=5e-1, lead_SD='Lorentzian',
-                alpha_ph=10e-3, Gamma_ph=10e-3, Omega_ph=50e-3, delta_leads=3e-3, leads_lifetime=1, N=14, radiative_lifetime=1, silent=True):
+                alpha_ph=10e-3, Gamma_ph=10e-3, Omega_ph=50e-3, delta_leads=15e-3, leads_lifetime=1, N=14, radiative_lifetime=1, silent=True):
     # fix all parameters for typical symmetries used and parameter space reduction
     # Output: parameters dict
     sys_dim = 4
@@ -231,6 +231,56 @@ def populations_and_current_vs_voltage(PARAMS, x_range=[0.6,1.6], num_voltages=3
     return data_dict
 
 
+def additive_populations_and_current_vs_voltage(PARAMS, x_range=[0.6,1.6], num_voltages=35):
+    ti = time.time()
+    if PARAMS['T_L']<100:
+        number_of_voltages = int(1.8*num_voltages)
+    else:
+        number_of_voltages = num_voltages
+    #bias_voltages = np. linspace(x_range[0]*ev_to_inv_cm, x_range[1]*ev_to_inv_cm, number_of_voltages)
+    bias_voltages = np.concatenate((np.array([0]), 
+                    np.linspace(x_range[0]*ev_to_inv_cm, x_range[1]*ev_to_inv_cm, number_of_voltages)), 
+                                   axis=0)
+    current = []
+    conduction_population = []
+    valence_population = []
+    ground_population = []
+    hole_population = []
+    electron_population = []
+    exciton_population = []
+    CC_population = []
+    ops = make_expectation_operators(PARAMS)
+    for i, bv in enumerate(bias_voltages):
+        PARAMS.update({'mu_R': PARAMS['mu']+bv/2, 'mu_L': PARAMS['mu']-bv/2})
+        #if i in [10, 90]:
+        #    print_PARAMS(PARAMS)
+        L_Lindblad_dict = build_L(PARAMS, silent=True)
+        #ops = make_expectation_operators(PARAMS)
+        n_c = tensor(d_e.dag()*d_e, qeye(PARAMS['N']))
+        n_v = tensor(d_h.dag()*d_h, qeye(PARAMS['N']))
+        ss = steadystate(L_Lindblad_dict['H_S'], [L_Lindblad_dict['L_add_EM']])
+        current.append(current_from_ss(ss, L_Lindblad_dict['L_R'], n_c))
+        conduction_population.append((n_c*ss).tr())
+        valence_population.append((n_v*ss).tr())
+        ground_population.append((ops['vac']*ss).tr())
+        hole_population.append((ops['hole']*ss).tr())
+        electron_population.append((ops['electron']*ss).tr())
+        exciton_population.append((ops['exciton']*ss).tr())
+        CC_population.append((ops['CC_pop']*ss).tr())
+    bias_voltages/=ev_to_inv_cm
+    data_dict = {'bias_voltages':bias_voltages, 
+                 'current': current,
+                 'conduction_population' : conduction_population, 
+                 'valence_population' : valence_population,
+                 'ground_population': ground_population,
+                 'hole_population' : hole_population,
+                 'electron_population' : electron_population,
+                 'exciton_population' : exciton_population,
+                 'CC_population' : CC_population,
+                'PARAMS': PARAMS}
+    print("C-V data calculated in {:0.1f} seconds".format(time.time() - ti))
+    return data_dict
+
 
 def separate_states(dic, PARAMS):
     energies, states = dic['H_S'].eigenstates()
@@ -261,5 +311,39 @@ def separate_states(dic, PARAMS):
         #disps.append(abs((st.dag()*position*st).tr())**2)
     assert(len(exciton_states)==len(electron_states))
     assert(len(hole_states)==len(vac_states))
+    return {'exciton': exciton_states, 'electron': electron_states, 
+            'hole': hole_states, 'vac': vac_states}
+
+def separate_energies(dic, PARAMS):
+    
+    energies, states = dic['H_S'].eigenstates()
+    disps = []
+    N = PARAMS['N']
+    x_CC = (qt.destroy(N)+qt.destroy(N).dag())
+    exciton_states = []
+    electron_states = []
+    hole_states = []
+    vac_states = []
+
+    for en, st in zip(energies, states):
+        if (st.dag()*tensor(vac_proj, qeye(N))*st).tr() != 0:
+            vac_states.append((en, st))
+
+        elif (st.dag()*tensor(hole_proj, qeye(N))*st).tr() != 0:
+            hole_states.append((en, st))
+            assert((st.dag()*tensor(electron_proj, qeye(N))*st).tr() == 0.)
+
+        elif (st.dag()*tensor(electron_proj, qeye(N))*st).tr() != 0:
+            electron_states.append((en, st))
+            assert((st.dag()*tensor(hole_proj, qeye(N))*st).tr() == 0.)
+        elif (st.dag()*tensor(exciton_proj, qeye(N))*st).tr() != 0:
+            exciton_states.append((en, st))
+        else:
+            print("ERRORS")
+        #position = tensor(qeye(4), x_CC)
+        #disps.append(abs((st.dag()*position*st).tr())**2)
+    assert(len(exciton_states)==len(electron_states))
+    assert(len(hole_states)==len(vac_states))
+    
     return {'exciton': exciton_states, 'electron': electron_states, 
             'hole': hole_states, 'vac': vac_states}
