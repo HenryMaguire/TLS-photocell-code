@@ -50,7 +50,7 @@ def PARAMS_setup(bandgap=1.4, valence_energy = 100e-3, binding_energy=0., mu=0, 
     # fix all parameters for typical symmetries used and parameter space reduction
     # Output: parameters dict
     sys_dim = 4
-    J = J_minimal
+    J = J_multipolar
     # Convert everything to inverse CM
     Gamma_EM = rate_for_ns_lifetime*ev_to_inv_cm/radiative_lifetime
     Gamma_leads = rate_for_ns_lifetime*ev_to_inv_cm/leads_lifetime
