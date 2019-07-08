@@ -45,7 +45,7 @@ def make_expectation_operators(PARAMS):
     assert(len(fullspace_ops) == len(labels))
     return dict((key_val[0], key_val[1]) for key_val in zip(labels, fullspace_ops))
 
-def PARAMS_setup(bandgap=1.4, valence_energy = 100e-3, binding_energy=0., mu=0, bias_voltage=2., T_C=300., T_EM=5800, deformation_ratio=5e-1, lead_SD='Lorentzian',
+def PARAMS_setup(bandgap=1.4, valence_energy = 100e-3, binding_energy=0., mu=700e-3, bias_voltage=0., T_C=300., T_EM=5800, deformation_ratio=5e-1, lead_SD='Lorentzian',
                 alpha_ph=10e-3, Gamma_ph=10e-3, Omega_ph=50e-3, delta_leads=15e-3, leads_lifetime=1, N=14, radiative_lifetime=1, silent=True):
     # fix all parameters for typical symmetries used and parameter space reduction
     # Output: parameters dict
