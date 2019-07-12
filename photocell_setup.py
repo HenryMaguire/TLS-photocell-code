@@ -133,6 +133,9 @@ def build_L(PARAMS, silent=True):
 def short_current(v,c):
     # assumes that V=0 at element 0
     return c[0]
+def short_current_from_dict(data_dict):
+    # assumes that V=0 at element 0
+    return data_dict['current'][0]
 
 def estimate_Voc(v, c):
     # voltage where current goes to zero
