@@ -106,8 +106,13 @@ def print_PARAMS(PARAMS):
 """def J_underdamped(omega, Gamma, omega_0, alpha=0.):
     return alpha*Gamma*pow(omega_0,2)*omega/(pow(pow(omega_0,2)-pow(omega,2),2)+(Gamma**2 *omega**2))
 """
-
-
+import matplotlib.pyplot as plt
+def plot_underdamped(PARAMS):
+   omegas = np.linspace(0, 5*PARAMS['Omega_ph'], 3000.)
+   Jvals = [J_underdamped(w, PARAMS['Gamma_ph'], PARAMS['Omega_ph'], alpha=PARAMS['alpha_ph']) for w in omegas]
+   plt.figure()
+   plt.plot(omegas, Jvals)
+    
 
 
 def J_underdamped(omega, Gamma, omega_0, alpha=0.):
@@ -115,7 +120,7 @@ def J_underdamped(omega, Gamma, omega_0, alpha=0.):
 
 def SD_peak_position(Gamma, alpha, w_0):
     Omega = np.linspace(0,w_0*50,10000)
-    J_w = np.array([J_underdamped(w, Gamma, w_0, alpha=0.) for w in Omega])
+    J_w = np.array([J_underdamped(w, Gamma, w_0, alpha=alpha) for w in Omega])
     return Omega[np.argmax(J_w)]
 
 def rate_up(w, n, gamma, J, w_0):

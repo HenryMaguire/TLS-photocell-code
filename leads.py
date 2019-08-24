@@ -6,10 +6,17 @@ import matplotlib.pyplot as plt
 from qutip import ket, basis, sigmam, sigmap, spre, sprepost, spost, destroy, mesolve, qeye, tensor
 import qutip as qt
 import scipy
-from utils import kB
+from utils import kB, ev_to_inv_cm
 
 def J_Lorentzian(omega, delta, omega_0, Gamma=0.):
     return (Gamma*delta**2/(2*pi))/(((omega-omega_0)**2)+delta**2)
+def J_flat_hat(omega, delta, omega_0, Gamma=0.):
+    # assume bandgap is 1.4eV
+    if abs(omega - omega_0) < 1.4*ev_to_inv_cm:
+        return Gamma/(2*pi)
+    else:
+        return 0
+
 def J_flat(omega, delta, omega_0, Gamma=0.):
     return Gamma/(2*pi)
 
@@ -90,6 +97,8 @@ def L_left_and_right_secular(H, PARAMS, lead_SD='Lorentzian'):
     H_dim = len(energies)
     if lead_SD == 'flat':
         J_leads = J_flat
+    if lead_SD == 'hat':
+        J_leads = J_flat_hat
     else:
         J_leads = J_Lorentzian
     Lambda_up_R = lambda x :  Lamdba_complex_rate(x, J_leads, PARAMS['mu_R'], PARAMS['T_R'], PARAMS['Gamma_R'], 
